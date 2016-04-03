@@ -3,7 +3,7 @@ package de.randombyte.streetlights.commands
 import org.spongepowered.api.Sponge
 
 object Commands {
-    val commands = arrayOf<CommandCallableProvider>(ToggleEditorMode)
+    val commands = arrayOf<CommandCallableProvider>()
 
     fun register(plugin: Any) {
         commands.forEach { command ->
