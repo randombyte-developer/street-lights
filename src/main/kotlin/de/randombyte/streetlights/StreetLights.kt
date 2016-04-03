@@ -1,6 +1,7 @@
 package de.randombyte.streetlights
 
 import com.google.inject.Inject
+import de.randombyte.streetlights.commands.CommandUtils.toErrorText
 import de.randombyte.streetlights.commands.CommandUtils.toNotifyText
 import de.randombyte.streetlights.commands.CommandUtils.toSuccessText
 import de.randombyte.streetlights.commands.Commands
@@ -16,6 +17,9 @@ import org.spongepowered.api.event.filter.cause.First
 import org.spongepowered.api.event.game.state.GameInitializationEvent
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent
 import org.spongepowered.api.plugin.Plugin
+import org.spongepowered.api.text.Text
+import org.spongepowered.api.text.action.TextActions
+import org.spongepowered.api.text.format.TextColors
 import java.nio.file.Path
 import java.util.*
 
@@ -45,16 +49,23 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
      */
     @Listener
     fun onPlaceBlock(event: ChangeBlockEvent.Place, @First player: Player) {
-        if (playerEditMode[player.uniqueId] ?: false) {
-            event.transactions.filter { it.final.state.type.equals(BlockTypes.REDSTONE_LAMP) }.forEach { transaction ->
-                val location = transaction.final.location.get()
-                val light = DbManager.getLight(location)
-                if (light == null) {
-                    DbManager.addLight(location)
-                    player.sendMessage("Added Light!".toSuccessText())
-                } else {
-                    player.sendMessage("Already added!".toNotifyText())
-                }
+        event.transactions.filter { it.final.state.type.equals(BlockTypes.REDSTONE_LAMP) }.forEach { transaction ->
+            val location = transaction.final.location.get()
+            val light = DbManager.getLight(location)
+            if (light == null) {
+                player.sendMessage(Text.builder()
+                    .append(Text.of(TextColors.YELLOW, "[CLICK] to add as Light"))
+                    .onClick(TextActions.executeCallback {
+                        if (!location.block.type.equals(BlockTypes.REDSTONE_LAMP))
+                            player.sendMessage("Redstone lamp isn't there anymore!".toErrorText())
+                        else if (DbManager.getLight(location) == null) {
+                            DbManager.addLight(location)
+                            player.sendMessage("Added Light!".toSuccessText())
+                        } else player.sendMessage("Already added!".toNotifyText())
+                    })
+                    .onHover(TextActions.showText(location.toString().toNotifyText())).build())
+            } else {
+                player.sendMessage("Already added!".toNotifyText())
             }
         }
     }
