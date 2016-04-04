@@ -4,6 +4,7 @@ import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.spongepowered.api.Sponge
+import org.spongepowered.api.block.BlockTypes
 import org.spongepowered.api.world.Location
 import java.util.*
 
@@ -33,4 +34,12 @@ object Lights : Table() {
         val worldOpt = Sponge.getServer().getWorld(UUID.fromString(row[worldUUID]))
         return if (worldOpt.isPresent) Light(row[id], Location(worldOpt.get(), row[x], row[y], row[z])) else null //world not available
     }
+
+    /**
+     * Sets provided Lights to the specified state: ON/OFF.
+     * @lights Array of Lights to power/unpower
+     * @powered Whether the Lights should be on or off
+     */
+    fun setLightsState(lights: Array<Light>, powered: Boolean) =
+            lights.forEach { it.location.setBlockType(if (powered) BlockTypes.LIT_REDSTONE_LAMP else BlockTypes.REDSTONE_LAMP) }
 }

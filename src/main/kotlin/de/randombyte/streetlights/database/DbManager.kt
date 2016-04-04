@@ -17,15 +17,23 @@ object DbManager {
     }
 
     /**
-     * Returns all Lights from loaded worlds.
+     * Gets all Lights from loaded worlds.
      * @return All Lights from loaded worlds
      */
-    fun getAllLights(): Map<Int, Light> {
-        return Database.connect(getDataSource()).transaction {
+    fun getAllLights(): Map<Int, Light> = Database.connect(getDataSource()).transaction {
             ensureExistence(Lights)
             Lights.fromQuery(Lights.selectAll()).associateBy { it.id }
         }
-    }
+
+    /**
+     * Gets all Lights from world with specified worldUuid.
+     * @worldUuid String of UUID of world that should be queried
+     * @return All Lights from provided world
+     */
+    fun getAllLights(worldUuid: String): Array<Light> = Database.connect(getDataSource()).transaction {
+            ensureExistence(Lights)
+            Lights.fromQuery(Lights.select { Lights.worldUUID eq worldUuid })
+        }
 
     /**
      * Adds a Light to database.
