@@ -41,5 +41,12 @@ object Lights : Table() {
      * @powered Whether the Lights should be on or off
      */
     fun setLightsState(lights: Array<Light>, powered: Boolean) =
-            lights.forEach { it.location.setBlockType(if (powered) BlockTypes.LIT_REDSTONE_LAMP else BlockTypes.REDSTONE_LAMP) }
+            lights.forEach {
+                val extent = it.location.extent
+                val x = it.location.blockX
+                val y = it.location.blockY
+                val z = it.location.blockZ
+                val newBlockState = if (powered) BlockTypes.LIT_REDSTONE_LAMP.defaultState else BlockTypes.REDSTONE_LAMP.defaultState
+                extent.setBlock(x, y, z, newBlockState, true)
+            }
 }
