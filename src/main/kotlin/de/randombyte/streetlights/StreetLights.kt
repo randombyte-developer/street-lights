@@ -25,18 +25,23 @@ import org.spongepowered.api.world.weather.Weathers
 import java.nio.file.Path
 import java.util.*
 
-@Plugin(id = PluginInfo.ID, name = PluginInfo.NAME, version = PluginInfo.VERSION, authors = arrayOf(PluginInfo.AUTHOR))
+@Plugin(id = StreetLights.ID, name = StreetLights.NAME, version = StreetLights.VERSION, authors = arrayOf(StreetLights.AUTHOR))
 class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoot = false) val configDir: Path) {
 
     companion object {
         //default state when using not mapped player UUID should be false
         val playerEditMode = mutableMapOf<UUID, Boolean>()
+
+        const val NAME = "StreetLights"
+        const val ID = "de.randombyte.streelights"
+        const val VERSION = "v0.1"
+        const val AUTHOR = "RandomByte"
     }
 
     @Listener
     fun onInit(event: GameInitializationEvent) {
         DbManager.path = configDir.resolve("database").toAbsolutePath().toString()
-        logger.info("${PluginInfo.NAME} loaded: ${PluginInfo.VERSION}")
+        logger.info("$NAME loaded: $VERSION")
     }
 
     @Listener
