@@ -4,7 +4,6 @@ import com.google.inject.Inject
 import de.randombyte.streetlights.commands.CommandUtils.toErrorText
 import de.randombyte.streetlights.commands.CommandUtils.toNotifyText
 import de.randombyte.streetlights.commands.CommandUtils.toSuccessText
-import de.randombyte.streetlights.commands.Commands
 import de.randombyte.streetlights.database.DbManager
 import de.randombyte.streetlights.database.Lights
 import org.h2.tools.Server
@@ -37,7 +36,6 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     @Listener
     fun onInit(event: GameInitializationEvent) {
         DbManager.path = configDir.resolve("database").toAbsolutePath().toString()
-        Commands.register(this)
         logger.info("${PluginInfo.NAME} loaded: ${PluginInfo.VERSION}")
     }
 
