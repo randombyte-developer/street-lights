@@ -98,8 +98,8 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     @Listener
     fun onBlockModify(event: ChangeBlockEvent.Place) {
         event.transactions.forEach { transaction ->
-            if (transaction.original.state.type.equals(BlockTypes.LIT_REDSTONE_LAMP)) { //Old is lit
-                if (lightsOn) event.isCancelled = true //Should lit lamp stay? Then cancel event
+            if (lightsOn && transaction.original.state.type.equals(BlockTypes.LIT_REDSTONE_LAMP)) { //Old is lit
+                event.isCancelled = true //Should lit lamp stay? Then cancel event
             }
         }
     }
