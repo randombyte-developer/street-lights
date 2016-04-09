@@ -29,7 +29,7 @@ import java.util.*
 class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoot = false) val configDir: Path) {
 
     companion object {
-        //default state when using not mapped player UUID should be false
+        //default state of unmapped player should be false
         val playerEditMode = mutableMapOf<UUID, Boolean>()
 
         const val NAME = "StreetLights"
