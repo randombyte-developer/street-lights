@@ -5,6 +5,9 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.block.BlockTypes
+import org.spongepowered.api.event.cause.Cause
+import org.spongepowered.api.event.cause.NamedCause
+import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.world.Location
 import java.util.*
 
@@ -40,13 +43,13 @@ object Lights : Table() {
      * @lights Array of Lights to power/unpower
      * @powered Whether the Lights should be on or off
      */
-    fun setLightsState(lights: Array<Light>, powered: Boolean) =
+    fun setLightsState(lights: Array<Light>, powered: Boolean, plugin: PluginContainer) =
             lights.forEach {
                 val extent = it.location.extent
                 val x = it.location.blockX
                 val y = it.location.blockY
                 val z = it.location.blockZ
                 val newBlockState = if (powered) BlockTypes.LIT_REDSTONE_LAMP.defaultState else BlockTypes.REDSTONE_LAMP.defaultState
-                extent.setBlock(x, y, z, newBlockState, true)
+                extent.setBlock(x, y, z, newBlockState, true, Cause.of(NamedCause.source(plugin)))
             }
 }

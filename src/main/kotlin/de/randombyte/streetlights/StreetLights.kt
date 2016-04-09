@@ -8,6 +8,7 @@ import de.randombyte.streetlights.database.DbManager
 import de.randombyte.streetlights.database.Lights
 import org.h2.tools.Server
 import org.slf4j.Logger
+import org.spongepowered.api.Sponge
 import org.spongepowered.api.block.BlockTypes
 import org.spongepowered.api.config.ConfigDir
 import org.spongepowered.api.entity.living.player.Player
@@ -18,6 +19,7 @@ import org.spongepowered.api.event.game.state.GameInitializationEvent
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent
 import org.spongepowered.api.event.world.ChangeWorldWeatherEvent
 import org.spongepowered.api.plugin.Plugin
+import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.text.Text
 import org.spongepowered.api.text.action.TextActions
 import org.spongepowered.api.text.format.TextColors
@@ -37,6 +39,8 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
         const val VERSION = "v0.1"
         const val AUTHOR = "RandomByte"
     }
+
+    var lightsOn = false
 
     @Listener
     fun onInit(event: GameInitializationEvent) {
@@ -94,8 +98,22 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     }
 
     @Listener
+    fun onBlockModify(event: ChangeBlockEvent.Place) {
+        event.transactions.forEach { transaction ->
+            if (transaction.original.state.type.equals(BlockTypes.LIT_REDSTONE_LAMP)) {
+                //Old is lit
+                val rootCause = event.cause.root()
+                val ownModification = rootCause is PluginContainer && rootCause.id.equals(StreetLights.ID)
+                if (lightsOn) event.isCancelled = true //Prevent external modifications
+            }
+        }
+    }
+
+    @Listener
     fun onChangeWeather(event: ChangeWorldWeatherEvent) {
+        lightsOn = !event.weather.equals(Weathers.CLEAR)
         val lights = DbManager.getAllLights(event.targetWorld.uniqueId.toString())
-        Lights.setLightsState(lights, !event.weather.equals(Weathers.CLEAR)) //on when not clear weather
+        val pluginContainer = Sponge.getPluginManager().fromInstance(this).get()
+        Lights.setLightsState(lights, lightsOn, pluginContainer) //on when not clear weather
     }
 }
