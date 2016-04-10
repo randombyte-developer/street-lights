@@ -12,8 +12,7 @@ import org.spongepowered.api.Sponge
 import org.spongepowered.api.block.BlockSnapshot
 import org.spongepowered.api.block.BlockType
 import org.spongepowered.api.block.BlockTypes
-import org.spongepowered.api.block.BlockTypes.LIT_REDSTONE_LAMP
-import org.spongepowered.api.block.BlockTypes.REDSTONE_LAMP
+import org.spongepowered.api.block.BlockTypes.*
 import org.spongepowered.api.config.ConfigDir
 import org.spongepowered.api.data.Transaction
 import org.spongepowered.api.entity.living.player.Player
@@ -75,7 +74,8 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
      */
     @Listener
     fun onPlaceLamp(event: ChangeBlockEvent.Place, @First player: Player) {
-        event.transactions.filter { it.final.state.type.equals(BlockTypes.REDSTONE_LAMP) }.forEach { transaction ->
+        //transaction AIR -> REDSTONE_LAMP so a user place event
+        event.transactions.filter { it.checkType(AIR, REDSTONE_LAMP) }.forEach { transaction ->
             val location = transaction.final.location.get()
             val light = DbManager.getLight(location)
             if (light == null) {
