@@ -10,7 +10,6 @@ import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.block.BlockSnapshot
 import org.spongepowered.api.block.BlockType
-import org.spongepowered.api.block.BlockTypes
 import org.spongepowered.api.block.BlockTypes.*
 import org.spongepowered.api.config.ConfigDir
 import org.spongepowered.api.data.Transaction
@@ -81,7 +80,10 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
                 player.sendMessage(Text.builder()
                     .append(Text.of(TextColors.YELLOW, "[CLICK] to add as Light"))
                     .onClick(TextActions.executeCallback {
-                        if (!location.block.type.equals(BlockTypes.REDSTONE_LAMP))
+                        //Watch out, maybe the player has removed the lamp in the time between placing it and clicking text
+                        if (!(location.block.type.equals(REDSTONE_LAMP) ||
+                                //Also check for LIT_REDSTONE_LAMP because the lamp may get powered after placing
+                                location.block.type.equals(LIT_REDSTONE_LAMP)))
                             player.sendMessage("Redstone lamp isn't there anymore!".toErrorText())
                         else if (DbManager.getLight(location) == null) {
                             DbManager.addLight(location)
@@ -100,7 +102,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
      */
     @Listener
     fun onBreakLamp(event: ChangeBlockEvent.Break) {
-        event.transactions.filter { it.original.state.type.equals(BlockTypes.REDSTONE_LAMP) }.forEach { transaction ->
+        event.transactions.filter { it.original.state.type.equals(REDSTONE_LAMP) }.forEach { transaction ->
             val location = transaction.original.location.get()
             val light = DbManager.getLight(location)
             if (light != null) {
