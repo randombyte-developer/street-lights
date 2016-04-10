@@ -56,7 +56,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
      * Adds a placed REDSTONE_LAMP to the system.
      */
     @Listener
-    fun onPlaceBlock(event: ChangeBlockEvent.Place, @First player: Player) {
+    fun onPlaceLamp(event: ChangeBlockEvent.Place, @First player: Player) {
         event.transactions.filter { it.final.state.type.equals(BlockTypes.REDSTONE_LAMP) }.forEach { transaction ->
             val location = transaction.final.location.get()
             val light = DbManager.getLight(location)
@@ -82,7 +82,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
      * Removes a removed REDSTONE_LAMP from the system.
      */
     @Listener
-    fun onBreakBlock(event: ChangeBlockEvent.Break) {
+    fun onBreakLamp(event: ChangeBlockEvent.Break) {
         event.transactions.filter { it.original.state.type.equals(BlockTypes.REDSTONE_LAMP) }.forEach { transaction ->
             val location = transaction.original.location.get()
             val light = DbManager.getLight(location)
@@ -95,8 +95,12 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
         }
     }
 
+    /**
+     * Prevents lit lamps being updated by Minecraft. Vanilla behaviour: Lit lamps without a signal would
+     * correctly be updated to unlit lamps.
+     */
     @Listener
-    fun onBlockModify(event: ChangeBlockEvent.Place) {
+    fun onUpdateLampBlock(event: ChangeBlockEvent.Place) {
         event.transactions.forEach { transaction ->
             if (lightsOn && transaction.original.state.type.equals(BlockTypes.LIT_REDSTONE_LAMP)) { //Old is lit
                 event.isCancelled = true //Should lit lamp stay? Then cancel event
