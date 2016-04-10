@@ -8,6 +8,7 @@ import de.randombyte.streetlights.database.DbManager
 import de.randombyte.streetlights.database.Lights
 import org.h2.tools.Server
 import org.slf4j.Logger
+import org.spongepowered.api.Sponge
 import org.spongepowered.api.block.BlockTypes
 import org.spongepowered.api.config.ConfigDir
 import org.spongepowered.api.entity.living.player.Player
@@ -24,25 +25,37 @@ import org.spongepowered.api.text.format.TextColors
 import org.spongepowered.api.world.weather.Weathers
 import java.nio.file.Path
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Plugin(id = StreetLights.ID, name = StreetLights.NAME, version = StreetLights.VERSION, authors = arrayOf(StreetLights.AUTHOR))
 class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoot = false) val configDir: Path) {
 
     companion object {
-        //default state of unmapped player should be false
-        val playerEditMode = mutableMapOf<UUID, Boolean>()
-
         const val NAME = "StreetLights"
         const val ID = "de.randombyte.streelights"
         const val VERSION = "v0.1"
         const val AUTHOR = "RandomByte"
+
+        val TICKS_PER_DAY = 24000
+        val TIME_RANGE_LAMPS_ON = 12500..23500 //in ticks
+
+        //default state of unmapped player should be false
+        val playerEditMode = mutableMapOf<UUID, Boolean>()
     }
 
-    var lightsOn = false
+    //per world if lamps are on
+    val lightsOn = mutableMapOf<UUID, Boolean>()
 
     @Listener
     fun onInit(event: GameInitializationEvent) {
         DbManager.path = configDir.resolve("database").toAbsolutePath().toString()
+
+        //Scheduled task to update the lights based on time; runs every 10 seconds
+        Sponge.getScheduler().createTaskBuilder()
+                .interval(10, TimeUnit.SECONDS)
+                .execute(Runnable { checkTime() })
+                .submit(this)
+
         logger.info("$NAME loaded: $VERSION")
     }
 
@@ -102,15 +115,31 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     @Listener
     fun onUpdateLampBlock(event: ChangeBlockEvent.Place) {
         event.transactions.forEach { transaction ->
-            if (lightsOn && transaction.original.state.type.equals(BlockTypes.LIT_REDSTONE_LAMP)) { //Old is lit
+            val lampsInWorldOn = lightsOn[transaction.original.location.get().extent.uniqueId] ?: false
+            if (lampsInWorldOn && transaction.original.state.type.equals(BlockTypes.LIT_REDSTONE_LAMP)) { //Old is lit
                 event.isCancelled = true //Should lit lamp stay? Then cancel event
             }
         }
     }
 
     @Listener
-    fun onChangeWeather(event: ChangeWorldWeatherEvent) {
-        lightsOn = !event.weather.equals(Weathers.CLEAR) //on when not clear weather
-        Lights.setLightsState(DbManager.getAllLights(event.targetWorld.uniqueId.toString()), lightsOn)
+    fun onChangeWeather(event: ChangeWorldWeatherEvent) { //Specific world in which the ChangeBlockEvent occured
+        val lampsOn = !event.weather.equals(Weathers.CLEAR) //lamps on when not clear weather
+        lightsOn[event.targetWorld.uniqueId] = lampsOn
+        Lights.setLightsState(DbManager.getAllLights(event.targetWorld.uniqueId.toString()), lampsOn)
+    }
+
+    fun checkTime() {
+        Sponge.getGame().server.worlds.filter { it.dimension.hasSky() }.forEach { world -> //Check all worlds with sky
+            val dayTime = world.properties.worldTime % TICKS_PER_DAY
+            System.out.println(dayTime)
+            val oldValue = lightsOn[world.uniqueId]
+            val newValue = dayTime in TIME_RANGE_LAMPS_ON
+            lightsOn[world.uniqueId] = newValue
+            if (oldValue != newValue) {
+                //LampsOn-state changed -> update all lights in target world
+                Lights.setLightsState(DbManager.getAllLights(world.uniqueId.toString()), newValue)
+            }
+        }
     }
 }
