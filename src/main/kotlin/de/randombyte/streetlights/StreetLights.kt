@@ -6,7 +6,6 @@ import de.randombyte.streetlights.commands.CommandUtils.toNotifyText
 import de.randombyte.streetlights.commands.CommandUtils.toSuccessText
 import de.randombyte.streetlights.database.DbManager
 import de.randombyte.streetlights.database.Lights
-import org.h2.tools.Server
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.block.BlockSnapshot
@@ -66,7 +65,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     @Listener
     fun onPostInit(event: GamePostInitializationEvent) {
         //DEBUGGUNG
-        Server.createWebServer("-web", "-webAllowOthers", "-webPort", "8082").start()
+        //Server.createWebServer("-web", "-webAllowOthers", "-webPort", "8082").start()
     }
 
     /**
