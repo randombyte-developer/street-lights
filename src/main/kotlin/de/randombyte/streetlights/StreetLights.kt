@@ -35,7 +35,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     companion object {
         const val NAME = "StreetLights"
         const val ID = "de.randombyte.streelights"
-        const val VERSION = "v0.1"
+        const val VERSION = "v0.1.1"
         const val AUTHOR = "RandomByte"
 
         val TICKS_PER_DAY = 24000
@@ -45,7 +45,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
         val playerEditMode = mutableMapOf<UUID, Boolean>()
     }
 
-    //per world if lamps are on
+    //per world lamps state
     val lightsOn = mutableMapOf<UUID, Boolean>()
 
     @Listener
@@ -72,6 +72,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
      */
     @Listener
     fun onPlaceLamp(event: ChangeBlockEvent.Place, @First player: Player) {
+        if (!player.hasPermission("streetlights.create")) return
         //transaction AIR -> REDSTONE_LAMP so a user place event
         event.transactions.filter { it.checkType(AIR, REDSTONE_LAMP) }.forEach { transaction ->
             val location = transaction.final.location.get()
