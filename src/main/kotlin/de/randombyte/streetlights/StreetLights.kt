@@ -147,7 +147,6 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     fun checkTime() {
         Sponge.getGame().server.worlds.filter { it.dimension.hasSky() }.forEach { world -> //Check all worlds with sky
             val dayTime = world.properties.worldTime % TICKS_PER_DAY
-            System.out.println(dayTime)
             val oldValue = lightsOn[world.uniqueId]
             val newValue = dayTime in TIME_RANGE_LAMPS_ON
             lightsOn[world.uniqueId] = newValue
