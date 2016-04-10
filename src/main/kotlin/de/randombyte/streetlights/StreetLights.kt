@@ -9,8 +9,13 @@ import de.randombyte.streetlights.database.Lights
 import org.h2.tools.Server
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
+import org.spongepowered.api.block.BlockSnapshot
+import org.spongepowered.api.block.BlockType
 import org.spongepowered.api.block.BlockTypes
+import org.spongepowered.api.block.BlockTypes.LIT_REDSTONE_LAMP
+import org.spongepowered.api.block.BlockTypes.REDSTONE_LAMP
 import org.spongepowered.api.config.ConfigDir
+import org.spongepowered.api.data.Transaction
 import org.spongepowered.api.entity.living.player.Player
 import org.spongepowered.api.event.Listener
 import org.spongepowered.api.event.block.ChangeBlockEvent
@@ -114,21 +119,30 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
      */
     @Listener
     fun onUpdateLampBlock(event: ChangeBlockEvent.Place) {
-        event.transactions.forEach { transaction ->
-            val lampsInWorldOn = lightsOn[transaction.original.location.get().extent.uniqueId] ?: false
-            if (lampsInWorldOn && transaction.original.state.type.equals(BlockTypes.LIT_REDSTONE_LAMP)) { //Old is lit
-                event.isCancelled = true //Should lit lamp stay? Then cancel event
+        //Minecraft updates LIT_REDSTONE_LAMP to REDSTONE_LAMP; prevent those updates by cancelling this event
+        event.transactions.filter { it.checkType(LIT_REDSTONE_LAMP, REDSTONE_LAMP) }.forEach { transaction ->
+            //Don't cancel all events that match: It could be a redstone signal that went off which mustn't be cancelled
+            //So check if this is a registered block:
+            val lampRegistered = DbManager.getLight(transaction.original.location.get()) != null
+            if (lampRegistered) {
+                //And check if this lamp should stay on; as this event get fired when this plugin turns the light off
+                //it mustn't be cancelled otherwise lamps would never be turned off
+                val lampsInWorldOn = lightsOn[transaction.original.location.get().extent.uniqueId] ?: false
+                if (lampsInWorldOn) event.isCancelled = true
             }
         }
     }
 
     @Listener
-    fun onChangeWeather(event: ChangeWorldWeatherEvent) { //Specific world in which the ChangeBlockEvent occured
+    fun onChangeWeather(event: ChangeWorldWeatherEvent) {
         val lampsOn = !event.weather.equals(Weathers.CLEAR) //lamps on when not clear weather
         lightsOn[event.targetWorld.uniqueId] = lampsOn
         Lights.setLightsState(DbManager.getAllLights(event.targetWorld.uniqueId.toString()), lampsOn)
     }
 
+    /**
+     * Updates the [lightsOn]-state for all worlds with a sky and updates lights in world if [lightsOn]-state changed.
+     */
     fun checkTime() {
         Sponge.getGame().server.worlds.filter { it.dimension.hasSky() }.forEach { world -> //Check all worlds with sky
             val dayTime = world.properties.worldTime % TICKS_PER_DAY
@@ -142,4 +156,14 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
             }
         }
     }
+
+    /**
+     * Checks whether a transaction matches the criteria.
+     * @original The [BlockType] the original snapshot should have
+     * @final The BlockType the final snapshot should have
+     * @return Whether the criteria matches this transaction
+     */
+    fun Transaction<BlockSnapshot>.checkType(original: BlockType? = null, final: BlockType? = null) =
+            (original != null && this.original.state.type.equals(original)) &&
+                    (final != null && this.final.state.type.equals(final))
 }
