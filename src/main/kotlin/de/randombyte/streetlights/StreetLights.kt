@@ -1,9 +1,9 @@
 package de.randombyte.streetlights
 
 import com.google.inject.Inject
-import de.randombyte.streetlights.commands.CommandUtils.toErrorText
-import de.randombyte.streetlights.commands.CommandUtils.toNotifyText
-import de.randombyte.streetlights.commands.CommandUtils.toSuccessText
+import de.randombyte.streetlights.TextUtils.toErrorText
+import de.randombyte.streetlights.TextUtils.toNotifyText
+import de.randombyte.streetlights.TextUtils.toSuccessText
 import de.randombyte.streetlights.database.DbManager
 import de.randombyte.streetlights.database.Lights
 import org.slf4j.Logger
