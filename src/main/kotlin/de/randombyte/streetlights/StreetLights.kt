@@ -35,7 +35,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     companion object {
         const val NAME = "StreetLights"
         const val ID = "de.randombyte.streelights"
-        const val VERSION = "v0.1.1"
+        const val VERSION = "v0.1.2"
         const val AUTHOR = "RandomByte"
 
         val TICKS_PER_DAY = 24000
