@@ -159,12 +159,12 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     }
 
     /**
-     * Checks whether a transaction matches the criteria.
+     * Checks whether a transaction matches the criteria. Pass null to ignore this criteria.
      * @original The [BlockType] the original snapshot should have
      * @final The BlockType the final snapshot should have
      * @return Whether the criteria matches this transaction
      */
     fun Transaction<BlockSnapshot>.checkType(original: BlockType? = null, final: BlockType? = null) =
-            (original != null && this.original.state.type.equals(original)) &&
-                    (final != null && this.final.state.type.equals(final))
+            (original == null || this.original.state.type.equals(original)) &&
+                    (final == null || this.final.state.type.equals(final))
 }
