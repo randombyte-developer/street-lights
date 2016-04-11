@@ -103,7 +103,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
      */
     @Listener
     fun onBreakLamp(event: ChangeBlockEvent.Break) {
-        event.transactions.filter { it.original.state.type.equals(REDSTONE_LAMP) }.forEach { transaction ->
+        event.transactions.filter { it.checkType(REDSTONE_LAMP) || it.checkType(LIT_REDSTONE_LAMP) }.forEach { transaction ->
             val location = transaction.original.location.get()
             val light = DbManager.getLight(location)
             if (light != null) {
