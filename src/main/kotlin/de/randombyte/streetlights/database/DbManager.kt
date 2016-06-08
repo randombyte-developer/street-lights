@@ -1,6 +1,7 @@
 package de.randombyte.streetlights.database
 
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.spongepowered.api.service.sql.SqlService
 import org.spongepowered.api.world.Location
 import org.spongepowered.api.world.World
@@ -13,27 +14,33 @@ object DbManager {
     fun getDataSource() = sqlService.getDataSource("jdbc:h2:$path")
 
     fun Transaction.ensureExistence(table: Table) {
-        if (!table.exists()) create(table)
+        if (!table.exists()) SchemaUtils.create(table)
     }
 
     /**
      * Gets all Lights from loaded worlds.
      * @return All Lights from loaded worlds
      */
-    fun getAllLights(): Map<Int, Light> = Database.connect(getDataSource()).transaction {
+    fun getAllLights(): Map<Int, Light> {
+        Database.connect(getDataSource())
+        return transaction {
             ensureExistence(Lights)
             Lights.fromQuery(Lights.selectAll()).associateBy { it.id }
         }
+    }
 
     /**
      * Gets all Lights from world with specified worldUuid.
      * @worldUuid String of UUID of world that should be queried
      * @return All Lights from provided world
      */
-    fun getAllLights(worldUuid: String): Array<Light> = Database.connect(getDataSource()).transaction {
+    fun getAllLights(worldUuid: String): Array<Light> {
+        Database.connect(getDataSource())
+        return transaction {
             ensureExistence(Lights)
             Lights.fromQuery(Lights.select { Lights.worldUUID eq worldUuid })
         }
+    }
 
     /**
      * Adds a Light to database.
@@ -42,7 +49,8 @@ object DbManager {
      */
     fun addLight(location: Location<World>): Int {
         var id = -1
-        Database.connect(getDataSource()).transaction {
+        Database.connect(getDataSource())
+        transaction {
             ensureExistence(Lights)
             id = Lights.insert {
                 it[worldUUID] = location.extent.uniqueId.toString()
@@ -56,11 +64,12 @@ object DbManager {
 
     /**
      * Gets the Light object from its Location.
-     * @return Nullable Light object, may be null when there is no Light in given Location
+     * @return Nullable Light object, may be null wehen there is no Light in given Location
      * @throws IllegalStateException when there are two Lights with same Location
      */
     fun getLight(location: Location<World>): Light? {
-        return Database.connect(getDataSource()).transaction {
+        Database.connect(getDataSource())
+        return transaction {
             ensureExistence(Lights)
             val results = Lights.fromQuery(Lights.select {
                 Lights.worldUUID.eq(location.extent.uniqueId.toString()) and
@@ -78,7 +87,8 @@ object DbManager {
     }
 
     fun removeLight(id: Int) {
-        Database.connect(getDataSource()).transaction {
+        Database.connect(getDataSource())
+        transaction {
             Lights.deleteWhere { Lights.id eq id }
         }
     }
