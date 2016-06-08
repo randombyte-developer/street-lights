@@ -80,8 +80,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
                             DbManager.addLight(location)
                             player.sendMessage("Added Light!".toSuccessText())
                         } else player.sendMessage("Already added!".toNotifyText())
-                    })
-                    .onHover(TextActions.showText(location.toString().toNotifyText())).build())
+                    }).build())
             } else {
                 player.sendMessage("Already added!".toNotifyText())
             }

@@ -30,7 +30,7 @@ dependencies {
     shade "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.spongepowered:spongeapi:$spongeApiVersion"
     kapt "org.spongepowered:spongeapi:$spongeApiVersion"
-    shade "org.jetbrains.exposed:exposed:0.5.0"
+    shade "org.jetbrains.exposed:exposed:0.3.2"
 }
 
 //https://forgegradle.readthedocs.org/en/latest/user-guide/shading/
