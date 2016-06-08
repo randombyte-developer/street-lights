@@ -18,7 +18,6 @@ import org.spongepowered.api.event.Listener
 import org.spongepowered.api.event.block.ChangeBlockEvent
 import org.spongepowered.api.event.filter.cause.First
 import org.spongepowered.api.event.game.state.GameInitializationEvent
-import org.spongepowered.api.event.game.state.GamePostInitializationEvent
 import org.spongepowered.api.event.world.ChangeWorldWeatherEvent
 import org.spongepowered.api.plugin.Plugin
 import org.spongepowered.api.text.Text
@@ -35,14 +34,11 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
     companion object {
         const val NAME = "StreetLights"
         const val ID = "de.randombyte.streelights"
-        const val VERSION = "v0.1.2"
+        const val VERSION = "v0.1.2.1"
         const val AUTHOR = "RandomByte"
 
         val TICKS_PER_DAY = 24000
         val TIME_RANGE_LAMPS_ON = 12500..23500 //in ticks
-
-        //default state of unmapped player should be false
-        val playerEditMode = mutableMapOf<UUID, Boolean>()
     }
 
     //per world lamps state
@@ -59,12 +55,6 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
                 .submit(this)
 
         logger.info("$NAME loaded: $VERSION")
-    }
-
-    @Listener
-    fun onPostInit(event: GamePostInitializationEvent) {
-        //DEBUGGUNG
-        //Server.createWebServer("-web", "-webAllowOthers", "-webPort", "8082").start()
     }
 
     /**

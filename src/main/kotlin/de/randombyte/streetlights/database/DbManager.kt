@@ -82,5 +82,4 @@ object DbManager {
             Lights.deleteWhere { Lights.id eq id }
         }
     }
-
 }
