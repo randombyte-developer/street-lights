@@ -109,7 +109,7 @@ class StreetLights @Inject constructor (val logger: Logger, @ConfigDir(sharedRoo
      * correctly be updated to unlit lamps.
      */
     @Listener
-    fun onUpdateLampBlock(event: ChangeBlockEvent.Place) {
+    fun onUpdateLampBlock(event: ChangeBlockEvent) {
         //Minecraft updates LIT_REDSTONE_LAMP to REDSTONE_LAMP; prevent those updates by cancelling this event
         event.transactions.filter { it.checkType(LIT_REDSTONE_LAMP, REDSTONE_LAMP) }.forEach { transaction ->
             //Don't cancel all events that match: It could be a redstone signal that went off which mustn't be cancelled
